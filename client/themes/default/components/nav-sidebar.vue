@@ -13,7 +13,7 @@
     //-> Custom Navigation
     v-list.py-2(v-if='currentMode === `custom`', dense, :class='color', :dark='dark')
       template(v-for='item of items')
-        v-list-item(
+        v-list-item.px-6(
           v-if='item.kind === `link`'
           :href='item.target'
           )
@@ -21,7 +21,9 @@
             v-icon {{ item.icon }}
           v-list-item-title {{ item.label }}
         v-divider.my-2(v-else-if='item.kind === `divider`')
-        v-subheader.pl-4(v-else-if='item.kind === `header`') {{ item.label }}
+        v-list-item(v-else-if='item.kind === `header`') 
+          v-list-item-avatar(size='24', tile): v-icon mdi-chevron-right
+          v-list-item-title {{ item.label }}
     //-> Browse
     v-list.py-2(v-else-if='currentMode === `browse`', dense, :class='color', :dark='dark')
       template(v-if='currentParent.id > 0')

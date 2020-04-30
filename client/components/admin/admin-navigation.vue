@@ -89,7 +89,7 @@
                             em.caption.blue--text.text--lighten-4 {{$t('navigation.emptyList')}}
                         draggable(v-model='currentTree')
                           template(v-for='navItem in currentTree')
-                            v-list-item(
+                            v-list-item.pl-6(
                               v-if='navItem.kind === "link"'
                               :key='navItem.id'
                               :class='(navItem === current) ? "blue" : ""'
@@ -104,12 +104,16 @@
                               @click='selectItem(navItem)'
                               )
                               v-divider
-                            v-subheader.pl-4.clickable(
+                              
+                            v-list-item.clickable(
                               v-else-if='navItem.kind === "header"'
                               :key='navItem.id'
                               :class='(navItem === current) ? "blue" : ""'
                               @click='selectItem(navItem)'
-                              ) {{navItem.label}}
+                              )
+                             v-list-item-avatar(size='24', tile): v-icon mdi-chevron-right
+                             v-list-item-title {{navItem.label}}
+
                       v-card-chin
                         v-menu(offset-y, bottom, min-width='200px', style='flex: 1 1;')
                           template(v-slot:activator='{ on }')
@@ -269,13 +273,13 @@
 </template>
 
 <script>
-import _ from 'lodash'
-import gql from 'graphql-tag'
-import { v4 as uuid } from 'uuid'
+import _ from "lodash";
+import gql from "graphql-tag";
+import { v4 as uuid } from "uuid";
 
-import groupsQuery from 'gql/admin/users/users-query-groups.gql'
+import groupsQuery from "gql/admin/users/users-query-groups.gql";
 
-import draggable from 'vuedraggable'
+import draggable from "vuedraggable";
 
 /* global siteConfig, siteLangs */
 
@@ -292,50 +296,67 @@ export default {
       groups: [],
       copyFromLocaleDialogIsShown: false,
       config: {
-        mode: 'NONE'
+        mode: "NONE"
       },
       allLocales: [],
-      copyFromLocaleCode: 'en'
-    }
+      copyFromLocaleCode: "en"
+    };
   },
   computed: {
-    navTypes () {
+    navTypes() {
       return [
-        { text: this.$t('navigation.navType.external'), value: 'external' },
-        { text: this.$t('navigation.navType.home'), value: 'home' },
-        { text: this.$t('navigation.navType.page'), value: 'page' }
+        { text: this.$t("navigation.navType.external"), value: "external" },
+        { text: this.$t("navigation.navType.home"), value: "home" },
+        { text: this.$t("navigation.navType.page"), value: "page" }
         // { text: this.$t('navigation.navType.searchQuery'), value: 'search' }
-      ]
+      ];
     },
-    locales () {
-      return _.intersectionBy(this.allLocales, _.unionBy(siteLangs, [{ code: 'en' }, { code: siteConfig.lang }], 'code'), 'code')
+    locales() {
+      return _.intersectionBy(
+        this.allLocales,
+        _.unionBy(
+          siteLangs,
+          [{ code: "en" }, { code: siteConfig.lang }],
+          "code"
+        ),
+        "code"
+      );
     },
     currentTree: {
-      get () {
-        return _.get(_.find(this.trees, ['locale', this.currentLang]), 'items', null) || []
+      get() {
+        return (
+          _.get(
+            _.find(this.trees, ["locale", this.currentLang]),
+            "items",
+            null
+          ) || []
+        );
       },
-      set (val) {
-        const tree = _.find(this.trees, ['locale', this.currentLang])
+      set(val) {
+        const tree = _.find(this.trees, ["locale", this.currentLang]);
         if (tree) {
-          tree.items = val
+          tree.items = val;
         } else {
-          this.trees = [...this.trees, {
-            locale: this.currentLang,
-            items: val
-          }]
+          this.trees = [
+            ...this.trees,
+            {
+              locale: this.currentLang,
+              items: val
+            }
+          ];
         }
       }
     }
   },
   watch: {
-    currentLang (newValue, oldValue) {
+    currentLang(newValue, oldValue) {
       this.$nextTick(() => {
         if (this.currentTree.length > 0) {
-          this.current = this.currentTree[0]
+          this.current = this.currentTree[0];
         } else {
-          this.current = {}
+          this.current = {};
         }
-      })
+      });
     }
   },
   methods: {
@@ -343,50 +364,61 @@ export default {
       let newItem = {
         id: uuid(),
         kind,
-        visibilityMode: 'all',
+        visibilityMode: "all",
         visibilityGroups: []
-      }
+      };
       switch (kind) {
-        case 'link':
+        case "link":
           newItem = {
             ...newItem,
-            label: this.$t('navigation.untitled', { kind: this.$t(`navigation.link`) }),
-            icon: 'mdi-chevron-right',
-            targetType: 'home',
-            target: ''
-          }
-          break
-        case 'header':
-          newItem.label = this.$t('navigation.untitled', { kind: this.$t(`navigation.header`) })
-          break
+            label: this.$t("navigation.untitled", {
+              kind: this.$t(`navigation.link`)
+            }),
+            icon: "mdi-chevron-right",
+            targetType: "home",
+            target: ""
+          };
+          break;
+        case "header":
+          newItem.label = this.$t("navigation.untitled", {
+            kind: this.$t(`navigation.header`),
+          });
+          break;
       }
-      this.currentTree = [...this.currentTree, newItem]
-      this.current = newItem
+      this.currentTree = [...this.currentTree, newItem];
+      this.current = newItem;
     },
     deleteItem(item) {
-      this.currentTree = _.pull(this.currentTree, item)
-      this.current = {}
+      this.currentTree = _.pull(this.currentTree, item);
+      this.current = {};
     },
     selectItem(item) {
-      this.current = item
+      this.current = item;
     },
     selectPage() {
-      this.selectPageModal = true
+      this.selectPageModal = true;
     },
-    selectPageHandle ({ path, locale }) {
-      this.current.target = `/${locale}/${path}`
+    selectPageHandle({ path, locale }) {
+      this.current.target = `/${locale}/${path}`;
     },
-    copyFromLocale () {
-      this.copyFromLocaleDialogIsShown = false
-      this.currentTree = [...this.currentTree, ..._.get(_.find(this.trees, ['locale', this.copyFromLocaleCode]), 'items', null) || []]
+    copyFromLocale() {
+      this.copyFromLocaleDialogIsShown = false;
+      this.currentTree = [
+        ...this.currentTree,
+        ...(_.get(
+          _.find(this.trees, ["locale", this.copyFromLocaleCode]),
+          "items",
+          null
+        ) || [])
+      ];
     },
     async save() {
-      this.$store.commit(`loadingStart`, 'admin-navigation-save')
+      this.$store.commit(`loadingStart`, "admin-navigation-save");
       try {
         const resp = await this.$apollo.mutate({
           mutation: gql`
-            mutation ($tree: [NavigationTreeInput]!, $mode: NavigationMode!) {
-              navigation{
+            mutation($tree: [NavigationTreeInput]!, $mode: NavigationMode!) {
+              navigation {
                 updateTree(tree: $tree) {
                   responseResult {
                     succeeded
@@ -394,7 +426,7 @@ export default {
                     slug
                     message
                   }
-                },
+                }
                 updateConfig(mode: $mode) {
                   responseResult {
                     succeeded
@@ -410,29 +442,46 @@ export default {
             tree: this.trees,
             mode: this.config.mode
           }
-        })
-        if (_.get(resp, 'data.navigation.updateTree.responseResult.succeeded', false) && _.get(resp, 'data.navigation.updateConfig.responseResult.succeeded', false)) {
-          this.$store.commit('showNotification', {
-            message: this.$t('navigation.saveSuccess'),
-            style: 'success',
-            icon: 'check'
-          })
+        });
+        if (
+          _.get(
+            resp,
+            "data.navigation.updateTree.responseResult.succeeded",
+            false
+          ) &&
+          _.get(
+            resp,
+            "data.navigation.updateConfig.responseResult.succeeded",
+            false
+          )
+        ) {
+          this.$store.commit("showNotification", {
+            message: this.$t("navigation.saveSuccess"),
+            style: "success",
+            icon: "check"
+          });
         } else {
-          throw new Error(_.get(resp, 'data.navigation.updateTree.responseResult.message', 'An unexpected error occured.'))
+          throw new Error(
+            _.get(
+              resp,
+              "data.navigation.updateTree.responseResult.message",
+              "An unexpected error occured."
+            )
+          );
         }
       } catch (err) {
-        this.$store.commit('pushGraphError', err)
+        this.$store.commit("pushGraphError", err);
       }
-      this.$store.commit(`loadingStop`, 'admin-navigation-save')
+      this.$store.commit(`loadingStop`, "admin-navigation-save");
     },
     async refresh() {
-      await this.$apollo.queries.trees.refetch()
-      this.current = {}
-      this.$store.commit('showNotification', {
-        message: 'Navigation has been refreshed.',
-        style: 'success',
-        icon: 'cached'
-      })
+      await this.$apollo.queries.trees.refetch();
+      this.current = {};
+      this.$store.commit("showNotification", {
+        message: "Navigation has been refreshed.",
+        style: "success",
+        icon: "cached"
+      });
     }
   },
   apollo: {
@@ -446,10 +495,13 @@ export default {
           }
         }
       `,
-      fetchPolicy: 'network-only',
-      update: (data) => _.cloneDeep(data.navigation.config),
-      watchLoading (isLoading) {
-        this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-config')
+      fetchPolicy: "network-only",
+      update: data => _.cloneDeep(data.navigation.config),
+      watchLoading(isLoading) {
+        this.$store.commit(
+          `loading${isLoading ? "Start" : "Stop"}`,
+          "admin-navigation-config"
+        );
       }
     },
     trees: {
@@ -472,18 +524,24 @@ export default {
           }
         }
       `,
-      fetchPolicy: 'network-only',
-      update: (data) => _.cloneDeep(data.navigation.tree),
-      watchLoading (isLoading) {
-        this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-tree')
+      fetchPolicy: "network-only",
+      update: data => _.cloneDeep(data.navigation.tree),
+      watchLoading(isLoading) {
+        this.$store.commit(
+          `loading${isLoading ? "Start" : "Stop"}`,
+          "admin-navigation-tree"
+        );
       }
     },
     groups: {
       query: groupsQuery,
-      fetchPolicy: 'network-only',
-      update: (data) => data.groups.list,
-      watchLoading (isLoading) {
-        this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-groups')
+      fetchPolicy: "network-only",
+      update: data => data.groups.list,
+      watchLoading(isLoading) {
+        this.$store.commit(
+          `loading${isLoading ? "Start" : "Stop"}`,
+          "admin-navigation-groups"
+        );
       }
     },
     allLocales: {
@@ -498,24 +556,25 @@ export default {
           }
         }
       `,
-      fetchPolicy: 'network-only',
-      update: (data) => data.localization.locales,
-      watchLoading (isLoading) {
-        this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-locales')
+      fetchPolicy: "network-only",
+      update: data => data.localization.locales,
+      watchLoading(isLoading) {
+        this.$store.commit(
+          `loading${isLoading ? "Start" : "Stop"}`,
+          "admin-navigation-locales"
+        );
       }
     }
   }
-}
+};
 </script>
 
 <style lang='scss' scoped>
-
 .clickable {
   cursor: pointer;
 
   &:hover {
-    background-color: rgba(mc('blue', '500'), .25);
+    background-color: rgba(mc("blue", "500"), 0.25);
   }
 }
-
 </style>
